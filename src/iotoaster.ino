@@ -1,19 +1,21 @@
-/*#include <Arduino.h>
+#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <MAX6675-library/max6675.h>
-#include <Timer.h>
 
-// CONSTANTS
 const char* ssid = "IoToaster";
 const char* password = "calhacks";
+const int ssr_1 = 9;
+const int ssr_2 = 10;
 const int ktc_SO = 12;
 const int ktc_CS = 13;
 const int ktc_CLK = 14;
-const int ssr_1 = 10;
-const int ssr_2 = 9;
+
+const int profiles[3][6][2]= {{ {0 , 0}, { 120, 100}, {480, 185}, {520, 230}, {680, 230}, {685, 0} },
+                              { {0 , 0}, { 120, 100}, {480, 185}, {520, 230}, {680, 230}, {685, 0} },
+                              { {0 , 0}, { 120, 100}, {480, 185}, {520, 230}, {680, 230}, {685, 0} }};
 
 MAX6675 ktc(ktc_CLK, ktc_CS, ktc_SO);
 
@@ -21,6 +23,7 @@ MDNSResponder mdns;
 
 ESP8266WebServer server(80);
 
+const int led = 13;
 
 void handleRoot() {
   digitalWrite(led, 1);
@@ -39,6 +42,7 @@ void handleRoot() {
     digitalWrite(ssr_1, 0);
   }
   server.send(200, "text/plain", toprint);
+  digitalWrite(led, 0);
 }
 
 void handleNotFound(){
@@ -92,14 +96,18 @@ void setup(void){
   Serial.println("HTTP server started");
 }
 
-void check_temp()
+int get_temp_at_time( int profile, int time)
 {
-
+  int index;
+  for( index = 0; time < profiles[profile][index][0]; index++);
+  double slope = (profiles[profile][index+1][1]-profiles[profile][index][1])/
+                 (profiles[profile][index+1][0]-profiles[profile][index][0]);
+  int time_diff = time-profiles[profile][index][0];
+  int temp_at_time = int(time_diff * slope + profiles[profile][index][1]);
+  return temp_at_time;
 }
 
 void loop(void)
 {
-
   server.handleClient();
 }
-*/
