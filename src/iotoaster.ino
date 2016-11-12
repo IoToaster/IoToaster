@@ -12,7 +12,7 @@ const int ssr_2 = 10;
 const int ktc_SO = 12;
 const int ktc_CS = 13;
 const int ktc_CLK = 14;
-
+//profiles[PROFILE][TIME][TEMPERATURE]
 const int profiles[3][6][2]= {{ {0 , 0}, { 120, 100}, {480, 185}, {520, 230}, {680, 230}, {685, 0} },
                               { {0 , 0}, { 120, 100}, {480, 185}, {520, 230}, {680, 230}, {685, 0} },
                               { {0 , 0}, { 120, 100}, {480, 185}, {520, 230}, {680, 230}, {685, 0} }};
@@ -99,15 +99,29 @@ void setup(void){
 int get_temp_at_time( int profile, int time)
 {
   int index;
-  for( index = 0; time < profiles[profile][index][0]; index++);
-  double slope = (profiles[profile][index+1][1]-profiles[profile][index][1])/
-                 (profiles[profile][index+1][0]-profiles[profile][index][0]);
-  int time_diff = time-profiles[profile][index][0];
-  int temp_at_time = int(time_diff * slope + profiles[profile][index][1]);
-  return temp_at_time;
+  int max_time = 0;
+  for( index = 1; time >= profiles[profile][index][0] && profiles[profile][index][1] != 0; index++);
+  double slope = double(profiles[profile][index][1]-profiles[profile][index-1][1])/
+                 double(profiles[profile][index][0]-profiles[profile][index-1][0]);
+  int time_diff = time-profiles[profile][index-1][0];
+  if(profiles[profile][index][1] == 0 && time > 0 ) return -1;
+  else
+  {
+    double temp_at_time = time_diff * slope + profiles[profile][index-1][1];
+    return int(temp_at_time);
+  }
 }
 
 void loop(void)
 {
-  server.handleClient();
+  for( int time = 0; time < 800; time=time+10)
+  {
+    Serial.print("Time: ");
+    Serial.print(time);
+    Serial.print(" Temperature: ");
+    Serial.print(get_temp_at_time(0,time));
+    Serial.print('\n');
+    delay(500);
+  }
+    server.handleClient();
 }
