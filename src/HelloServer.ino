@@ -10,9 +10,10 @@ const char* password = "calhacks";
 const int ktc_SO = 12;
 const int ktc_CS = 13;
 const int ktc_CLK = 14;
+const int ssr_1 = 10;
+const int ssr_2 = 9;
 
 MAX6675 ktc(ktc_CLK, ktc_CS, ktc_SO);
-
 
 MDNSResponder mdns;
 
@@ -22,11 +23,21 @@ const int led = 13;
 
 void handleRoot() {
   digitalWrite(led, 1);
+  double temperature = ktc.readCelsius();
   String toprint = "";
   toprint += "Celcius: ";
-  toprint += ktc.readCelsius();
+  toprint += temperature;
+  if( temperature > 25 )
+  {
+    toprint += "\nRelay is on";
+    digitalWrite(ssr_1, 1);
+  }
+  else
+  {
+    toprint += "\nRelay is off";
+    digitalWrite(ssr_1, 0);
+  }
   server.send(200, "text/plain", toprint);
-  delay(500);
   digitalWrite(led, 0);
 }
 
